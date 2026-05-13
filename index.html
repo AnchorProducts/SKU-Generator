@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U-Anchor SKU Generator | Anchor Products</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=Barlow:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green-primary: #047835;
+    --green-deep: #11500F;
+    --green-mint: #9CE2BB;
+    --grey-neutral: #76777B;
+    --grey-light: #F4F5F6;
+    --grey-border: #D8DADD;
+    --warn-red: #C8302D;
+    --warn-amber: #F5A623;
+    --bg: #FAFBFA;
+    --ink: #1A1D1B;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', -apple-system, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; padding: 32px 20px; line-height: 1.5; }
+  .container { max-width: 1080px; margin: 0 auto; }
+  header { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 3px solid var(--green-primary); padding-bottom: 16px; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.04em; color: var(--green-primary); font-size: 14px; text-transform: uppercase; }
+  h1 { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: clamp(28px, 4vw, 42px); letter-spacing: -0.01em; line-height: 1; text-transform: uppercase; }
+  h1 span { color: var(--green-primary); }
+  .subtitle { font-size: 13px; color: var(--grey-neutral); margin-top: 6px; font-weight: 500; }
+  .header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .header-actions button { font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 8px 14px; border: 1px solid var(--grey-border); background: white; color: var(--ink); cursor: pointer; }
+  .header-actions button:hover { background: var(--grey-light); }
+  .header-actions button.admin-on { background: var(--green-primary); color: white; border-color: var(--green-primary); }
+  .instructions { background: white; border: 1px solid var(--grey-border); border-left: 4px solid var(--green-primary); padding: 14px 18px; margin-bottom: 28px; font-size: 14px; color: var(--green-deep); font-weight: 500; }
+  .instructions strong { font-weight: 700; }
+  .admin-banner { display: none; background: var(--green-primary); color: white; padding: 12px 18px; margin-bottom: 20px; font-size: 13px; font-weight: 500; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .admin-banner.show { display: flex; }
+  .admin-banner strong { font-weight: 700; }
+  .admin-banner .ab-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .admin-banner button { background: white; color: var(--green-deep); border: none; padding: 6px 12px; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer; }
+  .admin-banner button:hover { background: var(--green-mint); }
+  .admin-banner button.danger { background: var(--warn-red); color: white; }
+  .admin-banner button.danger:hover { background: #A82826; }
+  .layout { display: grid; grid-template-columns: 1fr 360px; gap: 32px; align-items: flex-start; }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+  .questions { background: white; border: 1px solid var(--grey-border); padding: 8px 0; }
+  .q-row { display: grid; grid-template-columns: 38px 1fr 1.4fr; gap: 12px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--grey-light); transition: background-color 160ms ease; }
+  .q-row:last-child { border-bottom: none; }
+  .q-row.active { background: #F6FCF8; }
+  .q-row.disabled { opacity: 0.4; pointer-events: none; }
+  .q-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; color: var(--green-primary); letter-spacing: 0.05em; }
+  .q-text { font-size: 14px; font-weight: 500; }
+  select { font-family: 'Barlow', sans-serif; font-size: 14px; padding: 8px 10px; border: 1px solid var(--grey-border); background: white; width: 100%; cursor: pointer; color: var(--ink); appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'><path fill='%23047835' d='M6 8L0 0h12z'/></svg>"); background-repeat: no-repeat; background-position: right 12px center; background-size: 10px; padding-right: 32px; }
+  select:focus { outline: 2px solid var(--green-primary); outline-offset: -1px; }
+  select:disabled { background-color: var(--grey-light); cursor: not-allowed; color: var(--grey-neutral); }
+  .warn { grid-column: 1 / -1; margin-top: 6px; font-size: 12px; color: var(--warn-red); font-weight: 600; display: none; }
+  .warn.show { display: block; }
+  .sidebar { position: sticky; top: 20px; display: flex; flex-direction: column; gap: 18px; }
+  .sku-card { background: var(--ink); color: white; padding: 22px 24px; position: relative; overflow: hidden; }
+  .sku-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--green-primary); }
+  .sku-card-label { font-family: 'Barlow Condensed', sans-serif; text-transform: uppercase; font-size: 12px; letter-spacing: 0.12em; color: var(--green-mint); margin-bottom: 10px; font-weight: 600; }
+  .sku-value { font-family: 'JetBrains Mono', monospace; font-size: clamp(18px, 2.6vw, 24px); font-weight: 700; letter-spacing: 0.02em; word-break: break-all; min-height: 32px; }
+  .sku-value .placeholder { color: var(--grey-neutral); font-weight: 500; font-family: 'Barlow', sans-serif; font-size: 14px; letter-spacing: 0; }
+  .sku-breakdown { margin-top: 14px; padding-top: 14px; border-top: 1px solid #2A2D2B; font-size: 11px; color: #B8BCBA; font-family: 'JetBrains Mono', monospace; line-height: 1.7; }
+  .sku-breakdown div span:first-child { color: var(--green-mint); display: inline-block; width: 64px; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  button.action { font-family: 'Barlow Condensed', sans-serif; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 12px; border: none; cursor: pointer; transition: background-color 140ms ease; }
+  .btn-primary { background: var(--green-primary); color: white; }
+  .btn-primary:hover { background: var(--green-deep); }
+  .btn-secondary { background: white; color: var(--ink); border: 1px solid var(--grey-border); }
+  .btn-secondary:hover { background: var(--grey-light); }
+  .hubspot { background: #FBBF24; padding: 18px 20px; display: grid; grid-template-columns: 110px 1fr; gap: 14px; align-items: start; }
+  .hubspot-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase; font-size: 13px; line-height: 1.1; border-right: 2px solid var(--ink); padding-right: 12px; }
+  .hubspot-fields { font-size: 13px; }
+  .hubspot-fields label { font-weight: 700; display: block; margin-bottom: 2px; font-size: 12px; }
+  .hubspot-fields .field { margin-bottom: 10px; }
+  .hubspot-fields .field:last-child { margin-bottom: 0; }
+  .hubspot-fields input, .hubspot-fields textarea { width: 100%; border: none; background: transparent; border-bottom: 1px solid var(--ink); font-family: 'Barlow', sans-serif; font-size: 13px; padding: 2px 0 4px; }
+  .hubspot-fields textarea { resize: vertical; min-height: 38px; }
+  .tier-select { width: 100%; background: white; border: 1px solid var(--ink); font-family: 'Barlow', sans-serif; font-size: 13px; padding: 4px 6px; }
+  .inventory { margin-top: 36px; background: white; border: 1px solid var(--grey-border); border-top: 3px solid var(--green-primary); }
+  .inv-header { padding: 16px 20px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+  .inv-header:hover { background: var(--grey-light); }
+  .inv-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 20px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .inv-title .badge { background: var(--green-primary); color: white; font-size: 11px; padding: 3px 8px; margin-left: 10px; letter-spacing: 0.05em; vertical-align: middle; }
+  .inv-subtitle { font-size: 12px; color: var(--grey-neutral); font-weight: 500; margin-top: 2px; }
+  .inv-toggle { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: var(--green-primary); font-weight: 700; }
+  .inv-body { display: none; padding: 0 20px 24px; }
+  .inv-body.open { display: block; }
+  .inv-note { background: #FFFBEB; border-left: 3px solid var(--warn-amber); padding: 12px 14px; margin-bottom: 20px; font-size: 13px; color: var(--ink); }
+  .inv-note strong { color: var(--warn-amber); }
+  .inv-section { margin-bottom: 28px; }
+  .inv-section h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--green-deep); margin-bottom: 8px; border-bottom: 1px solid var(--grey-border); padding-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .inv-section h3 > span:last-child { display: flex; align-items: center; gap: 10px; }
+  .inv-section h3 .count { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--grey-neutral); font-weight: 500; }
+  .inv-section h3 .add-btn { display: none; font-family: 'Barlow Condensed', sans-serif; font-size: 11px; padding: 4px 10px; border: 1px solid var(--green-primary); background: white; color: var(--green-primary); cursor: pointer; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+  .inv-section h3 .add-btn:hover { background: var(--green-primary); color: white; }
+  body.admin-mode .inv-section h3 .add-btn { display: inline-block; }
+  .inv-table { width: 100%; border-collapse: collapse; font-size: 13px; font-family: 'Barlow', sans-serif; }
+  .inv-table th, .inv-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--grey-light); vertical-align: middle; }
+  .inv-table th { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.05em; color: var(--grey-neutral); background: var(--grey-light); }
+  .inv-table td.code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--green-primary); font-weight: 700; }
+  .inv-table tr:hover td { background: #F6FCF8; }
+  .inv-table .actions { white-space: nowrap; text-align: right; }
+  .inv-table .actions button { font-family: 'Barlow Condensed', sans-serif; font-size: 10px; padding: 3px 7px; margin-left: 4px; border: 1px solid var(--grey-border); background: white; cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  .inv-table .actions button:hover { background: var(--grey-light); }
+  .inv-table .actions button.del { color: var(--warn-red); border-color: var(--warn-red); }
+  .inv-table .actions button.del:hover { background: var(--warn-red); color: white; }
+  .actions-col { display: none; }
+  body.admin-mode .actions-col { display: table-cell; }
+  body.admin-mode .editable { cursor: text; }
+  body.admin-mode .editable:hover { background: #FFFCE5; outline: 1px dashed var(--warn-amber); outline-offset: -1px; }
+  body.admin-mode .editable[contenteditable="true"]:focus { background: #FFF8C2; outline: 2px solid var(--warn-amber); outline-offset: -1px; }
+  .inv-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pill { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 3px 8px; background: var(--grey-light); border: 1px solid var(--grey-border); color: var(--ink); font-weight: 600; position: relative; }
+  .pill.std { background: #F0FAF4; border-color: var(--green-mint); color: var(--green-deep); }
+  .pill.custom { background: #FEF2F2; border-color: var(--warn-red); color: var(--warn-red); }
+  body.admin-mode .pill { padding-right: 22px; }
+  body.admin-mode .pill .pill-x { display: inline-block; }
+  .pill .pill-x { display: none; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--warn-red); font-weight: 700; font-size: 12px; line-height: 1; }
+  .mfg-colors-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; margin-top: 10px; }
+  .mfg-card { border: 1px solid var(--grey-border); padding: 12px; background: var(--grey-light); }
+  .mfg-card h4 { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .mfg-card h4 .code-tag { font-family: 'JetBrains Mono', monospace; color: var(--green-primary); font-size: 11px; margin-left: 6px; }
+  .mfg-card .materials-row { font-size: 11px; color: var(--grey-neutral); margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+  .mfg-card .add-color { display: none; margin-top: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 10px; padding: 3px 8px; border: 1px dashed var(--green-primary); background: transparent; color: var(--green-primary); cursor: pointer; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; }
+  body.admin-mode .mfg-card .add-color { display: inline-block; }
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: white; padding: 24px; max-width: 520px; width: 100%; max-height: 90vh; overflow-y: auto; }
+  .modal h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.02em; color: var(--green-deep); margin-bottom: 4px; }
+  .modal .modal-sub { font-size: 12px; color: var(--grey-neutral); margin-bottom: 18px; }
+  .modal label { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; color: var(--ink); margin: 12px 0 4px; }
+  .modal input, .modal select, .modal textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--grey-border); font-family: 'Barlow', sans-serif; font-size: 14px; }
+  .modal .checkbox-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: 13px; }
+  .modal .checkbox-row input { width: auto; }
+  .modal .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
+  .modal .modal-actions button { font-family: 'Barlow Condensed', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 10px 18px; border: none; cursor: pointer; }
+  .modal .modal-actions .cancel { background: white; color: var(--ink); border: 1px solid var(--grey-border); }
+  .modal .modal-actions .save { background: var(--green-primary); color: white; }
+  .modal .modal-actions .save:hover { background: var(--green-deep); }
+  .modal .multiselect { border: 1px solid var(--grey-border); padding: 8px; max-height: 200px; overflow-y: auto; }
+  .modal .multiselect label { display: flex; gap: 6px; align-items: center; font-family: 'Barlow', sans-serif; text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 500; margin: 4px 0; cursor: pointer; }
+  .modal .multiselect input { width: auto; }
+  footer { margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--grey-border); font-size: 12px; color: var(--grey-neutral); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  footer .mono { font-family: 'JetBrains Mono', monospace; }
+  @media print {
+    body { padding: 0; background: white; }
+    .sidebar { position: static; }
+    button { display: none; }
+    .inventory, .admin-banner { display: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div>
+      <div class="brand">Anchor Products · U-Anchor™</div>
+      <h1>SKU <span>Generator</span></h1>
+      <div class="subtitle">Configure a build and generate the matching part number.</div>
+    </div>
+    <div class="header-actions">
+      <button id="toggleInventoryBtn">View Data ↓</button>
+      <button id="toggleAdminBtn">🔒 Admin Mode</button>
+    </div>
+  </header>
+
+  <div class="admin-banner" id="adminBanner">
+    <div>
+      <strong>Admin Mode is ON.</strong> Click any cell to edit. Use the + Add and Delete buttons to manage entries.
+      Changes save to <strong>this browser only</strong> — to make them permanent for everyone, click Export JSON and send the file to whoever maintains the page.
+    </div>
+    <div class="ab-actions">
+      <button id="exportBtn">Export JSON</button>
+      <button id="importBtn">Import JSON</button>
+      <button class="danger" id="resetDataBtn">Reset to Defaults</button>
+    </div>
+  </div>
+
+  <div class="instructions">
+    Please answer the questions <strong>in the order they are presented.</strong> This ensures the proper selections are shown and the correct SKU is generated.
+  </div>
+
+  <div class="layout">
+    <div class="questions">
+      <div class="q-row" data-q="1"><div class="q-label">Q1</div><div class="q-text">Which U-Anchor series?</div><div><select id="q1"><option value="">— Select —</option></select></div></div>
+      <div class="q-row disabled" data-q="2"><div class="q-label">Q2</div><div class="q-text">What category of roof is it?</div><div><select id="q2" disabled><option value="">— Select —</option></select></div></div>
+      <div class="q-row disabled" data-q="3"><div class="q-label">Q3</div><div class="q-text">How many bolts welded to U-Anchor?</div><div><select id="q3" disabled><option value="">— Select —</option></select></div></div>
+      <div class="q-row disabled" data-q="4"><div class="q-label">Q4</div><div class="q-text">What is the bolt threading / length needed?</div><div><select id="q4" disabled><option value="">— Select —</option></select><div class="warn" id="q4-warn">*Not A Standard Option — Additional costs / lead time may apply</div></div></div>
+      <div class="q-row disabled" data-q="5"><div class="q-label">Q5</div><div class="q-text">What is the roof material type?</div><div><select id="q5" disabled><option value="">— Select —</option></select></div></div>
+      <div class="q-row disabled" data-q="6"><div class="q-label">Q6</div><div class="q-text">Who is the roofing manufacturer?</div><div><select id="q6" disabled><option value="">— Select —</option></select></div></div>
+      <div class="q-row disabled" data-q="7"><div class="q-label">Q7</div><div class="q-text">What color of roof material?</div><div><select id="q7" disabled><option value="">— Select —</option></select><div class="warn" id="q7-warn">*Not A Standard Color — Additional costs / lead time may apply</div></div></div>
+    </div>
+
+    <div class="sidebar">
+      <div class="sku-card">
+        <div class="sku-card-label">Your SKU is…</div>
+        <div class="sku-value" id="skuValue"><span class="placeholder">Complete Q1 – Q7 to generate</span></div>
+        <div class="sku-breakdown" id="skuBreakdown" style="display:none;">
+          <div><span>Series</span><span id="b1">—</span></div>
+          <div><span>Bolts</span><span id="b2">—</span></div>
+          <div><span>Mfg</span><span id="b3">—</span></div>
+          <div><span>Material</span><span id="b4">—</span></div>
+          <div><span>Color</span><span id="b5">—</span></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="action btn-primary" id="copyBtn">Copy SKU</button>
+        <button class="action btn-secondary" id="resetBtn">Start Over</button>
+      </div>
+      <div class="hubspot">
+        <div class="hubspot-label">Hubspot<br>Information</div>
+        <div class="hubspot-fields">
+          <div class="field"><label for="tier">Price Tier</label><select id="tier" class="tier-select"><option value="">— Select —</option><option>Contractor</option><option>Manufacturer</option><option>Distributor</option><option>Direct / Internal</option></select></div>
+          <div class="field"><label for="hsName">Name</label><input id="hsName" type="text" /></div>
+          <div class="field"><label for="hsDesc">Description</label><textarea id="hsDesc"></textarea></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="inventory">
+    <div class="inv-header" id="invHeader">
+      <div>
+        <div class="inv-title">Data Inventory<span class="badge">Reference</span></div>
+        <div class="inv-subtitle">Everything currently loaded in the generator. Turn on Admin Mode to edit directly.</div>
+      </div>
+      <div class="inv-toggle" id="invToggle">+</div>
+    </div>
+    <div class="inv-body" id="invBody">
+      <div class="inv-note">
+        <strong>For Riley:</strong> scan the tables below to check for missing or wrong entries. To suggest a change, write it down and send to Lauren.<br>
+        <strong>For Lauren:</strong> click <em>Admin Mode</em> in the header to edit any field directly. When done, click <em>Export JSON</em> to download a backup. Local edits persist in your browser only — to publish changes for everyone, send the JSON file to whoever updates the GitHub repo.
+      </div>
+
+      <div class="inv-section">
+        <h3>Q1 · U-Anchor Series <span><span class="count" id="cnt-series"></span><button class="add-btn" data-add="series">+ Add</button></span></h3>
+        <table class="inv-table" id="tbl-series"><thead><tr><th>Code</th><th>Display Name</th><th class="actions-col"></th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="inv-section">
+        <h3>Q2 · Roof Category <span><span class="count" id="cnt-cat"></span><button class="add-btn" data-add="cat">+ Add</button></span></h3>
+        <table class="inv-table" id="tbl-cat"><thead><tr><th>Code</th><th>Display Name</th><th class="actions-col"></th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="inv-section">
+        <h3>Q3 · Bolt Configurations <span><span class="count" id="cnt-bolt"></span><button class="add-btn" data-add="bolt">+ Add</button></span></h3>
+        <table class="inv-table" id="tbl-bolt"><thead><tr><th>Code</th><th>Description</th><th class="actions-col"></th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="inv-section">
+        <h3>Q4 · Bolt Threading / Length <span><span class="count" id="cnt-thread"></span><button class="add-btn" data-add="thread">+ Add</button></span></h3>
+        <table class="inv-table" id="tbl-thread"><thead><tr><th>Code</th><th>Description</th><th>Standard?</th><th class="actions-col"></th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="inv-section">
+        <h3>Q5 · Roof Material Types <span><span class="count" id="cnt-mat"></span><button class="add-btn" data-add="mat">+ Add</button></span></h3>
+        <table class="inv-table" id="tbl-mat"><thead><tr><th>Code</th><th>Full Name</th><th>Short Name</th><th class="actions-col"></th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="inv-section">
+        <h3>Q6 · Manufacturers <span><span class="count" id="cnt-mfg"></span><button class="add-btn" data-add="mfg">+ Add</button></span></h3>
+        <table class="inv-table" id="tbl-mfg"><thead><tr><th>Code</th><th>Manufacturer</th><th>Materials Offered</th><th class="actions-col"></th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <div class="inv-section">
+        <h3>Q7 · Color Palettes by Manufacturer <span class="count" id="cnt-color"></span></h3>
+        <div class="inv-subtitle" style="margin-bottom:12px;">Manufacturers without a defined palette fall back to a default set (White / Gray / Tan / Black + Custom).</div>
+        <div class="mfg-colors-grid" id="grid-colors"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>Anchor Products · Compression-Free, Watertight Rooftop Anchoring</div>
+    <div class="mono">anchorp.com</div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+const DEFAULTS = {
+  SERIES: [
+    { code: "1000",  name: "1000 Series Plate"  },
+    { code: "2000",  name: "2000 Series Plate"  },
+    { code: "3000",  name: "3000 Series Plate"  },
+    { code: "3000s", name: "3000s Series Plate" },
+    { code: "4000",  name: "4000 Series Plate"  }
+  ],
+  ROOF_CATEGORIES: [
+    { code: "WO", name: "Single-Ply (Weld Only - No Fasteners)" },
+    { code: "PO", name: "Plate Only (BUR or Liquid Applied Flashing)" },
+    { code: "MA", name: "Single-Ply (Mechanically Attached)" },
+    { code: "MB", name: "Modified Bitumen" },
+    { code: "CT", name: "Coatings" }
+  ],
+  BOLT_CONFIGS: [
+    { code: "B01", name: "One Bolt - Centered"           },
+    { code: "B02", name: "Two Bolts - 4\" OC"            },
+    { code: "B03", name: "Two Bolts - 6\" OC (Standard)" },
+    { code: "B04", name: "Two Bolts - 8\" OC"            },
+    { code: "B05", name: "Four Bolts - Corner Pattern"   }
+  ],
+  THREADING: [
+    { code: "3416", name: "Standard - 1/4\" Diameter X 1\" Length X 16 Threads/Inch",        standard: true  },
+    { code: "3420", name: "Standard - 1/4\" Diameter X 1.25\" Length X 20 Threads/Inch",     standard: true  },
+    { code: "3426", name: "Custom Bolt - 5/16\" Diameter X 1.5\" Length X 18 Threads/Inch",  standard: false },
+    { code: "3814", name: "Standard - 3/8\" Diameter X 1.5\" Length X 14 Threads/Inch",      standard: true  },
+    { code: "3820", name: "Standard - 3/8\" Diameter X 2\" Length X 20 Threads/Inch",        standard: true  }
+  ],
+  MATERIALS: [
+    { code: "A",  shortName: "APP Torch",         fullName: "APP Torch-Applied Asphalt (Atactic Polypropylene Modified Bitumen)",       category: "Asphalt"     },
+    { code: "C",  shortName: "Coatings",          fullName: "Reinforced Fluid-Applied Coatings (Fabric-Reinforced)",                    category: "Fabric"      },
+    { code: "E",  shortName: "EPDM Black",        fullName: "EPDM Black (Ethylene Propylene Diene Monomer, Synthetic Rubber)",          category: "Exposed"     },
+    { code: "K",  shortName: "KEE",               fullName: "KEE (Ketone Ethylene Ester Thermoplastic)",                                category: "Single-Ply"  },
+    { code: "P",  shortName: "PVC",               fullName: "PVC (Polyvinyl Chloride Thermoplastic)",                                   category: "Single-Ply"  },
+    { code: "S",  shortName: "SBS Adhered",       fullName: "SBS Adhered (Styrene-Butadiene-Styrene Modified Bitumen, Cold/Hot-Applied)", category: "Asphalt"   },
+    { code: "SC", shortName: "Silicone Coatings", fullName: "Silicone Fluid-Applied Coatings (Fabric-Reinforced)",                      category: "Fabric"      },
+    { code: "ST", shortName: "SBS Torch",         fullName: "SBS Torch-Applied (Styrene-Butadiene-Styrene Modified Bitumen)",           category: "Asphalt"     },
+    { code: "T",  shortName: "TPO",               fullName: "TPO (Thermoplastic Polyolefin / Polypropylene-Ethylene Rubber Blend)",     category: "Single-Ply"  }
+  ],
+  MANUFACTURERS: [
+    { code: "00AA",   name: "Generic / Non-Brand Specific", materials: ["P","T","E","K","A","S","ST","C","SC"] },
+    { code: "01CA",   name: "Carlisle",                     materials: ["T","E","P"] },
+    { code: "01CA-V", name: "Versico",                      materials: ["T","E","P"] },
+    { code: "01CA-M", name: "Mule Hide",                    materials: ["T","E","P","A"] },
+    { code: "01CA-W", name: "WeatherBond",                  materials: ["T","E","P"] },
+    { code: "02FS",   name: "GenFlex",                      materials: ["T","E"] },
+    { code: "02FS-F", name: "Firestone",                    materials: ["T","E","A"] },
+    { code: "03JM",   name: "Johns Manville",               materials: ["T","P","E","A"] },
+    { code: "04GF",   name: "GAF",                          materials: ["T","P","A","S"] },
+    { code: "05IB",   name: "IB Roof Systems - PVC Only",   materials: ["P"] },
+    { code: "06FT",   name: "Fibertite - Off White",        materials: ["K"] },
+    { code: "07FX",   name: "Flex",                         materials: ["P","T"] },
+    { code: "07FX-R", name: "RMA",                          materials: ["P","T"] },
+    { code: "08SS",   name: "Sika Sarnafil",                materials: ["P","T","K"] },
+    { code: "09DL",   name: "Durolast",                     materials: ["P"] },
+    { code: "09DT",   name: "Duro-Tuff",                    materials: ["T"] },
+    { code: "09DT-T", name: "Duro-Tech (TPO)",              materials: ["T"] },
+    { code: "11PG",   name: "Polyglass",                    materials: ["A","S","ST"] },
+    { code: "11PG-M", name: "Mulehide - Asphalts",          materials: ["A","S","ST"] },
+    { code: "12CT",   name: "Certainteed",                  materials: ["T","A"] },
+    { code: "13SI",   name: "Siplast",                      materials: ["A","S","ST"] },
+    { code: "14SP",   name: "Soprema",                      materials: ["P","T","A","S","ST"] },
+    { code: "15DB",   name: "Derbigum",                     materials: ["A","ST"] },
+    { code: "16TR",   name: "Tremco",                       materials: ["P","C","SC"] },
+    { code: "17GA",   name: "Garland",                      materials: ["A","ST","C"] },
+    { code: "18MK",   name: "Malarkey",                     materials: ["A","S"] },
+    { code: "19IK",   name: "IKO",                          materials: ["A","S"] },
+    { code: "20CO",   name: "Cooley",                       materials: ["P"] },
+    { code: "21MG",   name: "McGuire",                      materials: ["A","S"] },
+    { code: "22US",   name: "USPly",                        materials: ["P","T"] }
+  ],
+  COLORS: {
+    "09DL": [{code:"W",name:"White",standard:true},{code:"DG",name:"Dark Gray",standard:true},{code:"GY",name:"Gray",standard:true},{code:"TN",name:"Tan",standard:true},{code:"TC",name:"Terra Cotta",standard:true}],
+    "09DT": [{code:"BL",name:"Blue",standard:true},{code:"RD",name:"Bright Red",standard:true},{code:"BR",name:"Brown",standard:true},{code:"CR",name:"Colonial Red",standard:true},{code:"CH",name:"Charcoal",standard:true},{code:"CD",name:"Copper",standard:true},{code:"GN",name:"Green",standard:true},{code:"LG",name:"Light Gray",standard:true},{code:"LT",name:"Light Tan",standard:true},{code:"MB",name:"Midnight Bronze",standard:true},{code:"PA",name:"Patina",standard:true}],
+    "09DT-T": [{code:"W",name:"White",standard:true}],
+    "00AA": [{code:"BK",name:"Black",standard:true},{code:"W",name:"White",standard:true},{code:"GY",name:"Gray",standard:true}],
+    "03JM": [{code:"DB",name:"Dark Bronze",standard:true},{code:"EG",name:"Energy Gray",standard:true},{code:"ET",name:"Energy Tan",standard:true},{code:"GY",name:"Gray",standard:true},{code:"SS",name:"Sandstone",standard:true},{code:"SG",name:"Slate Gray",standard:true},{code:"TN",name:"Tan",standard:true},{code:"W",name:"White",standard:true}],
+    "05IB": [{code:"BZ",name:"Bronze",standard:true},{code:"CA",name:"Cool Sand",standard:true},{code:"CT",name:"Cool Stone",standard:true},{code:"TN",name:"Tan",standard:true},{code:"W",name:"White",standard:true}],
+    "06FT": [{code:"CG",name:"Cool Roof Gray",standard:true},{code:"OW",name:"Off White",standard:true},{code:"SG",name:"Slate Gray",standard:true},{code:"TT",name:"Thermal Tan",standard:true},{code:"W",name:"White",standard:true}],
+    "08SS": [{code:"CB",name:"Copper Brown",standard:true},{code:"LG",name:"Lead Gray",standard:true},{code:"PG",name:"Patina Green",standard:true},{code:"RG",name:"Reflective Gray",standard:true},{code:"TN",name:"Tan",standard:true},{code:"W",name:"White",standard:true}],
+    "01CA":   [{code:"MB",name:"Medium Bronze",standard:true},{code:"W",name:"White",standard:true},{code:"GY",name:"Gray",standard:true},{code:"TN",name:"Tan",standard:true}],
+    "01CA-V": [{code:"MB",name:"Medium Bronze",standard:true},{code:"W",name:"White",standard:true},{code:"GY",name:"Gray",standard:true},{code:"TN",name:"Tan",standard:true}],
+    "01CA-M": [{code:"MB",name:"Medium Bronze",standard:true},{code:"W",name:"White",standard:true},{code:"GY",name:"Gray",standard:true},{code:"TN",name:"Tan",standard:true}],
+    "01CA-W": [{code:"MB",name:"Medium Bronze",standard:true},{code:"W",name:"White",standard:true},{code:"GY",name:"Gray",standard:true},{code:"TN",name:"Tan",standard:true}],
+    "07FX":   [{code:"CG",name:"Cool Gray",standard:true},{code:"DG",name:"Dark Gray",standard:true},{code:"TN",name:"Tan",standard:true},{code:"CN",name:"Charcoal Gray",standard:true},{code:"DB",name:"Dark Brown",standard:true},{code:"W",name:"White",standard:true}],
+    "07FX-R": [{code:"CG",name:"Cool Gray",standard:true},{code:"DG",name:"Dark Gray",standard:true},{code:"TN",name:"Tan",standard:true},{code:"W",name:"White",standard:true}]
+  },
+  DEFAULT_COLORS: [
+    { code: "W",  name: "White",        standard: true  },
+    { code: "GY", name: "Gray",         standard: true  },
+    { code: "TN", name: "Tan",          standard: true  },
+    { code: "BK", name: "Black",        standard: true  },
+    { code: "XX", name: "Custom Color", standard: false }
+  ]
+};
+
+const STORAGE_KEY = "anchor-sku-data-v2";
+let DATA = loadData();
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const saved = JSON.parse(raw);
+      const out = JSON.parse(JSON.stringify(DEFAULTS));
+      Object.keys(DEFAULTS).forEach(k => { if (saved[k]) out[k] = saved[k]; });
+      return out;
+    }
+  } catch(e) {}
+  return JSON.parse(JSON.stringify(DEFAULTS));
+}
+function saveData() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); } catch(e) {} }
+
+const state = { q1:"", q2:"", q3:"", q4:"", q5:"", q6:"", q7:"" };
+const $ = id => document.getElementById(id);
+const rowOf = q => document.querySelector(`.q-row[data-q="${q}"]`);
+
+function setEnabled(q, on) {
+  const r = rowOf(q);
+  const sel = $("q"+q);
+  if (on) { r.classList.remove("disabled"); sel.disabled = false; }
+  else    { r.classList.add("disabled"); sel.disabled = true; sel.value = ""; state["q"+q] = ""; }
+}
+function highlightActive(q) {
+  document.querySelectorAll(".q-row").forEach(r => r.classList.remove("active"));
+  const row = rowOf(q);
+  if (row) row.classList.add("active");
+}
+function fillSelect(selectId, items, getValue, getLabel, dataAttrs) {
+  const sel = $(selectId);
+  const prevValue = sel.value;
+  sel.innerHTML = '<option value="">— Select —</option>';
+  items.forEach(it => {
+    const opt = document.createElement("option");
+    opt.value = getValue(it);
+    opt.textContent = getLabel(it);
+    if (dataAttrs) Object.entries(dataAttrs(it)).forEach(([k,v]) => opt.dataset[k] = v);
+    sel.appendChild(opt);
+  });
+  if (prevValue && Array.from(sel.options).some(o => o.value === prevValue)) sel.value = prevValue;
+}
+function populateQ1() { fillSelect("q1", DATA.SERIES, s => s.code, s => s.name); }
+function populateQ2() { fillSelect("q2", DATA.ROOF_CATEGORIES, c => c.code, c => c.name); }
+function populateQ3() { fillSelect("q3", DATA.BOLT_CONFIGS, b => b.code, b => b.name); }
+function populateQ4() { fillSelect("q4", DATA.THREADING, t => t.code, t => t.name, t => ({ standard: t.standard })); }
+function populateQ5() { fillSelect("q5", DATA.MATERIALS, m => m.code, m => `${m.fullName || m.shortName || m.name} (${m.code})`); }
+function populateQ6() {
+  const material = state.q5;
+  const filtered = DATA.MANUFACTURERS.filter(m => (m.materials || []).includes(material));
+  fillSelect("q6", filtered, m => m.code, m => m.name);
+}
+function populateQ7() {
+  const mfg = state.q6;
+  let palette = DATA.COLORS[mfg] ? [...DATA.COLORS[mfg]] : [...DATA.DEFAULT_COLORS];
+  if (!palette.some(c => c.code === "XX")) {
+    palette.push({ code: "XX", name: "Custom / Non-Standard Color", standard: false });
+  }
+  fillSelect("q7", palette, c => c.code, c => c.name, c => ({ standard: c.standard }));
+}
+function buildSKU() {
+  const { q1, q2, q3, q4, q5, q6, q7 } = state;
+  if (!q1 || !q2 || !q3 || !q4 || !q5 || !q6 || !q7) return null;
+  return `U${q4}-${q3}-${q6}-${q5}-${q7}`;
+}
+function updateSKU() {
+  const sku = buildSKU();
+  const valEl = $("skuValue"), breakdown = $("skuBreakdown");
+  if (!sku) {
+    valEl.innerHTML = '<span class="placeholder">Complete Q1 – Q7 to generate</span>';
+    breakdown.style.display = "none";
+    return;
+  }
+  valEl.textContent = sku;
+  breakdown.style.display = "block";
+  $("b1").textContent = `${state.q1} Series · ${state.q4}`;
+  $("b2").textContent = $("q3").options[$("q3").selectedIndex].text;
+  const mfg = DATA.MANUFACTURERS.find(m => m.code === state.q6);
+  $("b3").textContent = `${state.q6} · ${mfg ? mfg.name : ""}`;
+  const mat = DATA.MATERIALS.find(m => m.code === state.q5);
+  $("b4").textContent = `${state.q5} · ${mat ? (mat.shortName || mat.fullName || mat.name) : ""}`;
+  const colorOpt = $("q7").options[$("q7").selectedIndex];
+  $("b5").textContent = `${state.q7} · ${colorOpt ? colorOpt.textContent : ""}`;
+  const nm = $("hsName"), dsc = $("hsDesc");
+  if (!nm.dataset.touched) nm.value = `U-Anchor ${state.q1} (${state.q6}-${state.q5}-${state.q7})`;
+  if (!dsc.dataset.touched) dsc.value = `${state.q1} Series U-Anchor · ${$("q3").options[$("q3").selectedIndex].text} · ${mat?.shortName || mat?.fullName} · ${mfg?.name} — Color: ${colorOpt ? colorOpt.textContent : ""}.`;
+}
+function checkWarnings() {
+  const q4opt = $("q4").options[$("q4").selectedIndex];
+  $("q4-warn").classList.toggle("show", q4opt && q4opt.dataset.standard === "false");
+  const q7opt = $("q7").options[$("q7").selectedIndex];
+  $("q7-warn").classList.toggle("show", q7opt && q7opt.dataset.standard === "false");
+}
+
+// FORM EVENTS
+$("q1").addEventListener("change", e => {
+  state.q1 = e.target.value;
+  for (let i = 2; i <= 7; i++) setEnabled(i, false);
+  if (state.q1) { setEnabled(2, true); highlightActive(2); } else highlightActive(1);
+  updateSKU();
+});
+$("q2").addEventListener("change", e => {
+  state.q2 = e.target.value;
+  for (let i = 3; i <= 7; i++) setEnabled(i, false);
+  if (state.q2) { setEnabled(3, true); highlightActive(3); }
+  updateSKU();
+});
+$("q3").addEventListener("change", e => {
+  state.q3 = e.target.value;
+  for (let i = 4; i <= 7; i++) setEnabled(i, false);
+  if (state.q3) { setEnabled(4, true); highlightActive(4); }
+  updateSKU();
+});
+$("q4").addEventListener("change", e => {
+  state.q4 = e.target.value;
+  for (let i = 5; i <= 7; i++) setEnabled(i, false);
+  if (state.q4) { setEnabled(5, true); populateQ5(); highlightActive(5); }
+  checkWarnings(); updateSKU();
+});
+$("q5").addEventListener("change", e => {
+  state.q5 = e.target.value;
+  for (let i = 6; i <= 7; i++) setEnabled(i, false);
+  if (state.q5) { setEnabled(6, true); populateQ6(); highlightActive(6); }
+  updateSKU();
+});
+$("q6").addEventListener("change", e => {
+  state.q6 = e.target.value;
+  setEnabled(7, false);
+  if (state.q6) { setEnabled(7, true); populateQ7(); highlightActive(7); }
+  updateSKU();
+});
+$("q7").addEventListener("change", e => {
+  state.q7 = e.target.value;
+  checkWarnings(); updateSKU(); highlightActive(null);
+});
+["hsName","hsDesc"].forEach(id => $(id).addEventListener("input", e => { e.target.dataset.touched = "true"; }));
+
+$("copyBtn").addEventListener("click", () => {
+  const sku = buildSKU();
+  if (!sku) { alert("Complete Q1–Q7 first."); return; }
+  navigator.clipboard.writeText(sku).then(() => {
+    const btn = $("copyBtn"), orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    btn.style.background = "var(--green-deep)";
+    setTimeout(() => { btn.textContent = orig; btn.style.background = ""; }, 1400);
+  });
+});
+$("resetBtn").addEventListener("click", () => {
+  Object.keys(state).forEach(k => state[k] = "");
+  for (let i = 1; i <= 7; i++) {
+    $("q"+i).value = "";
+    if (i > 1) setEnabled(i, false);
+  }
+  ["hsName","hsDesc"].forEach(id => { $(id).value = ""; delete $(id).dataset.touched; });
+  $("tier").value = "";
+  highlightActive(1);
+  checkWarnings(); updateSKU();
+});
+
+// INVENTORY
+function escapeHTML(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderInventory() {
+  document.querySelector("#tbl-series tbody").innerHTML = DATA.SERIES.map((s,i) =>
+    `<tr data-table="SERIES" data-idx="${i}">
+       <td class="code editable" data-field="code">${escapeHTML(s.code)}</td>
+       <td class="editable" data-field="name">${escapeHTML(s.name)}</td>
+       <td class="actions actions-col"><button class="del" data-action="delete">Delete</button></td>
+     </tr>`).join("");
+  $("cnt-series").textContent = `${DATA.SERIES.length} entries`;
+
+  document.querySelector("#tbl-cat tbody").innerHTML = DATA.ROOF_CATEGORIES.map((c,i) =>
+    `<tr data-table="ROOF_CATEGORIES" data-idx="${i}">
+       <td class="code editable" data-field="code">${escapeHTML(c.code)}</td>
+       <td class="editable" data-field="name">${escapeHTML(c.name)}</td>
+       <td class="actions actions-col"><button class="del" data-action="delete">Delete</button></td>
+     </tr>`).join("");
+  $("cnt-cat").textContent = `${DATA.ROOF_CATEGORIES.length} entries`;
+
+  document.querySelector("#tbl-bolt tbody").innerHTML = DATA.BOLT_CONFIGS.map((b,i) =>
+    `<tr data-table="BOLT_CONFIGS" data-idx="${i}">
+       <td class="code editable" data-field="code">${escapeHTML(b.code)}</td>
+       <td class="editable" data-field="name">${escapeHTML(b.name)}</td>
+       <td class="actions actions-col"><button class="del" data-action="delete">Delete</button></td>
+     </tr>`).join("");
+  $("cnt-bolt").textContent = `${DATA.BOLT_CONFIGS.length} entries`;
+
+  document.querySelector("#tbl-thread tbody").innerHTML = DATA.THREADING.map((t,i) =>
+    `<tr data-table="THREADING" data-idx="${i}">
+       <td class="code editable" data-field="code">${escapeHTML(t.code)}</td>
+       <td class="editable" data-field="name">${escapeHTML(t.name)}</td>
+       <td><span class="pill ${t.standard ? 'std' : 'custom'}" data-action="toggle-standard" style="cursor:pointer;">${t.standard ? 'STANDARD' : 'CUSTOM'}</span></td>
+       <td class="actions actions-col"><button class="del" data-action="delete">Delete</button></td>
+     </tr>`).join("");
+  $("cnt-thread").textContent = `${DATA.THREADING.length} entries`;
+
+  document.querySelector("#tbl-mat tbody").innerHTML = DATA.MATERIALS.map((m,i) =>
+    `<tr data-table="MATERIALS" data-idx="${i}">
+       <td class="code editable" data-field="code">${escapeHTML(m.code)}</td>
+       <td class="editable" data-field="fullName">${escapeHTML(m.fullName || m.name || "")}</td>
+       <td class="editable" data-field="shortName">${escapeHTML(m.shortName || "")}</td>
+       <td class="actions actions-col"><button class="del" data-action="delete">Delete</button></td>
+     </tr>`).join("");
+  $("cnt-mat").textContent = `${DATA.MATERIALS.length} entries`;
+
+  document.querySelector("#tbl-mfg tbody").innerHTML = DATA.MANUFACTURERS.map((m,i) => {
+    const mats = (m.materials || []).map(c =>
+      `<span class="pill">${escapeHTML(c)}<span class="pill-x" data-action="remove-mat" data-mat="${escapeHTML(c)}">×</span></span>`
+    ).join(" ");
+    return `<tr data-table="MANUFACTURERS" data-idx="${i}">
+      <td class="code editable" data-field="code">${escapeHTML(m.code)}</td>
+      <td class="editable" data-field="name">${escapeHTML(m.name)}</td>
+      <td><div class="inv-pills">${mats || '<em style="color:#aaa">none</em>'}</div></td>
+      <td class="actions actions-col">
+        <button data-action="edit-mats">Edit Materials</button>
+        <button class="del" data-action="delete">Delete</button>
+      </td>
+    </tr>`;
+  }).join("");
+  $("cnt-mfg").textContent = `${DATA.MANUFACTURERS.length} entries`;
+
+  const grid = $("grid-colors");
+  let totalColors = 0;
+  grid.innerHTML = DATA.MANUFACTURERS.map(m => {
+    const palette = DATA.COLORS[m.code];
+    const hasCustom = !palette;
+    const colors = palette || DATA.DEFAULT_COLORS;
+    totalColors += colors.length;
+    const pills = colors.map(c =>
+      `<span class="pill ${c.standard ? 'std' : 'custom'}">${escapeHTML(c.code)} · ${escapeHTML(c.name)}<span class="pill-x" data-action="remove-color" data-mfg="${escapeHTML(m.code)}" data-color="${escapeHTML(c.code)}">×</span></span>`
+    ).join(" ");
+    const tag = hasCustom ? `<span style="font-size:10px;color:var(--warn-amber);font-weight:700;">⚠ FALLBACK</span>` : "";
+    return `<div class="mfg-card">
+      <h4>${escapeHTML(m.name)}<span class="code-tag">${escapeHTML(m.code)}</span> ${tag}</h4>
+      <div class="materials-row">Materials: ${(m.materials || []).join(", ") || "none"}</div>
+      <div class="inv-pills">${pills}</div>
+      <button class="add-color" data-action="add-color" data-mfg="${escapeHTML(m.code)}">+ Add Color</button>
+    </div>`;
+  }).join("");
+  $("cnt-color").textContent = `${totalColors} colors across ${DATA.MANUFACTURERS.length} manufacturers`;
+
+  attachInventoryEvents();
+}
+
+function attachInventoryEvents() {
+  document.querySelectorAll(".editable").forEach(td => {
+    td.addEventListener("click", () => {
+      if (!document.body.classList.contains("admin-mode")) return;
+      td.setAttribute("contenteditable", "true");
+      td.focus();
+    });
+    td.addEventListener("blur", () => {
+      if (!td.hasAttribute("contenteditable")) return;
+      td.removeAttribute("contenteditable");
+      const row = td.closest("tr");
+      const table = row.dataset.table;
+      const idx = parseInt(row.dataset.idx, 10);
+      const field = td.dataset.field;
+      const newValue = td.textContent.trim();
+      if (DATA[table] && DATA[table][idx]) {
+        DATA[table][idx][field] = newValue;
+        saveData();
+        refresh();
+      }
+    });
+    td.addEventListener("keydown", e => {
+      if (e.key === "Enter") { e.preventDefault(); td.blur(); }
+      if (e.key === "Escape") { td.blur(); }
+    });
+  });
+
+  document.querySelectorAll("[data-action='delete']").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const row = e.target.closest("tr");
+      const table = row.dataset.table;
+      const idx = parseInt(row.dataset.idx, 10);
+      const itemName = DATA[table][idx].name || DATA[table][idx].shortName || DATA[table][idx].code;
+      if (!confirm(`Delete "${itemName}"?`)) return;
+      DATA[table].splice(idx, 1);
+      saveData();
+      refresh();
+    });
+  });
+
+  document.querySelectorAll("[data-action='toggle-standard']").forEach(p => {
+    p.addEventListener("click", e => {
+      if (!document.body.classList.contains("admin-mode")) return;
+      const row = e.target.closest("tr");
+      const idx = parseInt(row.dataset.idx, 10);
+      DATA.THREADING[idx].standard = !DATA.THREADING[idx].standard;
+      saveData();
+      refresh();
+    });
+  });
+
+  document.querySelectorAll("[data-action='edit-mats']").forEach(btn => {
+    btn.addEventListener("click", e => {
+      const row = e.target.closest("tr");
+      const idx = parseInt(row.dataset.idx, 10);
+      openMaterialsModal(idx);
+    });
+  });
+
+  document.querySelectorAll("[data-action='remove-mat']").forEach(x => {
+    x.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!document.body.classList.contains("admin-mode")) return;
+      const matCode = x.dataset.mat;
+      const row = x.closest("tr");
+      const idx = parseInt(row.dataset.idx, 10);
+      DATA.MANUFACTURERS[idx].materials = (DATA.MANUFACTURERS[idx].materials || []).filter(m => m !== matCode);
+      saveData();
+      refresh();
+    });
+  });
+
+  document.querySelectorAll("[data-action='remove-color']").forEach(x => {
+    x.addEventListener("click", e => {
+      e.stopPropagation();
+      if (!document.body.classList.contains("admin-mode")) return;
+      const mfgCode = x.dataset.mfg;
+      const colorCode = x.dataset.color;
+      if (DATA.COLORS[mfgCode]) {
+        DATA.COLORS[mfgCode] = DATA.COLORS[mfgCode].filter(c => c.code !== colorCode);
+        if (DATA.COLORS[mfgCode].length === 0) delete DATA.COLORS[mfgCode];
+        saveData();
+        refresh();
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-action='add-color']").forEach(btn => {
+    btn.addEventListener("click", e => openAddColorModal(btn.dataset.mfg));
+  });
+}
+
+// MODALS
+const modal = $("modal"), modalBackdrop = $("modalBackdrop");
+function openModal(html) {
+  modal.innerHTML = html;
+  modalBackdrop.classList.add("show");
+}
+function closeModal() {
+  modalBackdrop.classList.remove("show");
+  modal.innerHTML = "";
+}
+window.closeModal = closeModal;
+modalBackdrop.addEventListener("click", e => { if (e.target === modalBackdrop) closeModal(); });
+
+const ADD_CONFIGS = {
+  series: { table: "SERIES", title: "Add Series", fields: [
+    { key: "code", label: "Code (e.g. 5000)", placeholder: "5000" },
+    { key: "name", label: "Display Name", placeholder: "5000 Series Plate" }
+  ]},
+  cat: { table: "ROOF_CATEGORIES", title: "Add Roof Category", fields: [
+    { key: "code", label: "Code (2-letter, e.g. MA)" },
+    { key: "name", label: "Display Name" }
+  ]},
+  bolt: { table: "BOLT_CONFIGS", title: "Add Bolt Configuration", fields: [
+    { key: "code", label: "Code (e.g. B06)" },
+    { key: "name", label: "Description" }
+  ]},
+  thread: { table: "THREADING", title: "Add Bolt Threading Spec", fields: [
+    { key: "code", label: "Code" },
+    { key: "name", label: "Description" },
+    { key: "standard", label: "Is this a standard option?", type: "checkbox", default: true }
+  ]},
+  mat: { table: "MATERIALS", title: "Add Roof Material", fields: [
+    { key: "code", label: "Code (e.g. T)" },
+    { key: "fullName", label: "Full Name", placeholder: "TPO (Thermoplastic Polyolefin)" },
+    { key: "shortName", label: "Short Name", placeholder: "TPO" },
+    { key: "category", label: "Category (optional)", placeholder: "Single-Ply" }
+  ]},
+  mfg: { table: "MANUFACTURERS", title: "Add Manufacturer", fields: [
+    { key: "code", label: "Code (e.g. 23ZZ)" },
+    { key: "name", label: "Manufacturer Name" },
+    { key: "materials", label: "Materials Offered", type: "multiselect" }
+  ]}
+};
+
+function openAddModal(addType) {
+  const cfg = ADD_CONFIGS[addType];
+  const fieldsHTML = cfg.fields.map(f => {
+    if (f.type === "checkbox") {
+      return `<div class="checkbox-row"><input type="checkbox" id="f-${f.key}" ${f.default ? 'checked' : ''}><label for="f-${f.key}" style="margin:0;">${f.label}</label></div>`;
+    }
+    if (f.type === "multiselect") {
+      const opts = DATA.MATERIALS.map(m =>
+        `<label><input type="checkbox" value="${escapeHTML(m.code)}"> ${escapeHTML(m.code)} — ${escapeHTML(m.shortName || m.fullName)}</label>`
+      ).join("");
+      return `<label>${f.label}</label><div class="multiselect" id="f-${f.key}">${opts}</div>`;
+    }
+    return `<label for="f-${f.key}">${f.label}</label><input id="f-${f.key}" type="text" placeholder="${f.placeholder || ''}">`;
+  }).join("");
+  openModal(`
+    <h2>${cfg.title}</h2>
+    <div class="modal-sub">New entry will be added to the bottom of the list.</div>
+    ${fieldsHTML}
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Cancel</button>
+      <button class="save" id="saveAddBtn">Save</button>
+    </div>
+  `);
+  $("saveAddBtn").addEventListener("click", () => {
+    const newItem = {};
+    let valid = true;
+    cfg.fields.forEach(f => {
+      const el = document.getElementById("f-"+f.key);
+      if (f.type === "checkbox") newItem[f.key] = el.checked;
+      else if (f.type === "multiselect") newItem[f.key] = Array.from(el.querySelectorAll("input:checked")).map(i => i.value);
+      else {
+        const v = el.value.trim();
+        newItem[f.key] = v;
+        if (f.key === "code" && !v) valid = false;
+      }
+    });
+    if (!valid) { alert("Code is required."); return; }
+    DATA[cfg.table].push(newItem);
+    saveData();
+    closeModal();
+    refresh();
+  });
+}
+
+function openMaterialsModal(mfgIdx) {
+  const mfg = DATA.MANUFACTURERS[mfgIdx];
+  const opts = DATA.MATERIALS.map(m => {
+    const checked = (mfg.materials || []).includes(m.code) ? "checked" : "";
+    return `<label><input type="checkbox" value="${escapeHTML(m.code)}" ${checked}> ${escapeHTML(m.code)} — ${escapeHTML(m.shortName || m.fullName)}</label>`;
+  }).join("");
+  openModal(`
+    <h2>Edit Materials for ${escapeHTML(mfg.name)}</h2>
+    <div class="modal-sub">Select which materials this manufacturer offers.</div>
+    <div class="multiselect" id="matsList">${opts}</div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Cancel</button>
+      <button class="save" id="saveMatsBtn">Save</button>
+    </div>
+  `);
+  $("saveMatsBtn").addEventListener("click", () => {
+    const selected = Array.from(document.querySelectorAll("#matsList input:checked")).map(i => i.value);
+    DATA.MANUFACTURERS[mfgIdx].materials = selected;
+    saveData();
+    closeModal();
+    refresh();
+  });
+}
+
+function openAddColorModal(mfgCode) {
+  const mfg = DATA.MANUFACTURERS.find(m => m.code === mfgCode);
+  openModal(`
+    <h2>Add Color to ${escapeHTML(mfg ? mfg.name : mfgCode)}</h2>
+    <div class="modal-sub">Color code is what appears in the SKU (e.g. "DG" for Dark Gray).</div>
+    <label for="f-cCode">Color Code</label><input id="f-cCode" type="text" placeholder="DG">
+    <label for="f-cName">Color Name</label><input id="f-cName" type="text" placeholder="Dark Gray">
+    <div class="checkbox-row"><input type="checkbox" id="f-cStd" checked><label for="f-cStd" style="margin:0;">Standard color (no extra cost / lead time)</label></div>
+    <div class="modal-actions">
+      <button class="cancel" onclick="closeModal()">Cancel</button>
+      <button class="save" id="saveColorBtn">Save</button>
+    </div>
+  `);
+  $("saveColorBtn").addEventListener("click", () => {
+    const code = $("f-cCode").value.trim();
+    const name = $("f-cName").value.trim();
+    if (!code || !name) { alert("Both code and name are required."); return; }
+    if (!DATA.COLORS[mfgCode]) DATA.COLORS[mfgCode] = [];
+    DATA.COLORS[mfgCode].push({ code, name, standard: $("f-cStd").checked });
+    saveData();
+    closeModal();
+    refresh();
+  });
+}
+
+document.querySelectorAll("[data-add]").forEach(btn => {
+  btn.addEventListener("click", () => openAddModal(btn.dataset.add));
+});
+
+// ADMIN MODE
+$("toggleAdminBtn").addEventListener("click", () => {
+  const isOn = document.body.classList.toggle("admin-mode");
+  $("toggleAdminBtn").classList.toggle("admin-on", isOn);
+  $("toggleAdminBtn").textContent = isOn ? "🔓 Exit Admin" : "🔒 Admin Mode";
+  $("adminBanner").classList.toggle("show", isOn);
+  if (isOn) {
+    $("invBody").classList.add("open");
+    $("invToggle").textContent = "−";
+    $("invHeader").scrollIntoView({ behavior: "smooth" });
+  }
+});
+
+// EXPORT / IMPORT / RESET
+$("exportBtn").addEventListener("click", () => {
+  const blob = new Blob([JSON.stringify(DATA, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `u-anchor-sku-data-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
+});
+$("importBtn").addEventListener("click", () => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        DATA = JSON.parse(reader.result);
+        saveData();
+        refresh();
+        alert("Data imported successfully.");
+      } catch (err) { alert("Invalid JSON file: " + err.message); }
+    };
+    reader.readAsText(file);
+  });
+  input.click();
+});
+$("resetDataBtn").addEventListener("click", () => {
+  if (!confirm("Reset all data to the original defaults? Your local edits will be lost.")) return;
+  DATA = JSON.parse(JSON.stringify(DEFAULTS));
+  saveData();
+  refresh();
+});
+
+function toggleInventory(forceOpen) {
+  const body = $("invBody"), tgl = $("invToggle");
+  const open = forceOpen !== undefined ? forceOpen : !body.classList.contains("open");
+  body.classList.toggle("open", open);
+  tgl.textContent = open ? "−" : "+";
+  if (open) body.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$("invHeader").addEventListener("click", () => toggleInventory());
+$("toggleInventoryBtn").addEventListener("click", () => toggleInventory(true));
+
+function refresh() {
+  populateQ1();
+  populateQ2();
+  populateQ3();
+  populateQ4();
+  if (state.q5) populateQ5();
+  if (state.q6) populateQ6();
+  if (state.q7) populateQ7();
+  renderInventory();
+}
+
+// INIT
+populateQ1();
+populateQ2();
+populateQ3();
+populateQ4();
+renderInventory();
+highlightActive(1);
+</script>
+</body>
+</html>
